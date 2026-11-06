@@ -7,3 +7,4 @@
 - Rehacer como app nueva en Cursor; demo primero en demo.diformainstore.com. (2026-11-05)
 - Preferir trabajo local en la PC Edwin-Laverde-Colombia (como Smartbudget) para archivos del backup. (2026-11-06)
 - Repo local del Project: C:\Users\Edwin_Laverde\Proyectos\Web diformainstore (worker local). (2026-11-06)
+- Preview público temporal en GitHub Pages (no demo.diformainstore.com todavía). Repo público para Pages gratis. (2026-11-06)
