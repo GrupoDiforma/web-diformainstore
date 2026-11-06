@@ -1,0 +1,64 @@
+.elementor-6778 .elementor-element.elementor-element-e8c559a > .elementor-container > .elementor-column > .elementor-widget-wrap{align-content:center;align-items:center;}.elementor-6778 .elementor-element.elementor-element-34e6992 .elementor-heading-title{font-weight:700;color:#FFFFFF;}@media(min-width:768px){.elementor-6778 .elementor-element.elementor-element-9bde47c{width:29%;}.elementor-6778 .elementor-element.elementor-element-c16640a{width:71%;}}/* Start custom CSS for text-editor, class: .elementor-element-f44972d */.bot-info-typ{
+    background-color: #ffffff;
+    box-shadow: 0px 0px 20px #00000040;
+    padding: 20px 20px 40px 20px;
+}
+.bot-info-typ ul{
+   margin: 0;
+   list-style: none;
+   display: flex;
+   margin-top: 20px;
+   margin-bottom: 20px;
+}
+.bot-info-typ ul li:last-child{
+   border-left: 1px solid #CF162E;
+   padding-left: 40px;
+   font-weight: bold;
+}
+.bot-info-typ ul li:first-child{
+   padding-right: 30px;
+}
+.bot-info-typ ul a{
+   background-color: transparent !important;
+   color: #DD0300 !important ;
+   padding: 0 !important;
+   border: none !important;
+   text-decoration: underline;
+}
+
+.bot-info-typ  a:last-child{
+       padding: 9px 18px 9px 18px;
+    font-size: 15px;
+    color: #FFFFFF;
+    font-family: Arial;
+    background-color: #DD0300;
+    border-radius: 5px;
+    border-width: undefined;
+    border-color: #DD0300;
+    border-style: solid;
+    width: 100%;
+    cursor: pointer;
+}/* End custom CSS */
+/* Start custom CSS for section, class: .elementor-element-e8c559a */.section-typ-ebook:before{
+    content: "";
+    background-color: #3A303A;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 60%;
+    width: 100%;
+}
+.section-typ-ebook:after{
+    content: "";
+    background-image: url(https://www.diformainstore.com/wp-content/uploads/2024/01/cropped-logo.png);
+    position: absolute;
+    left: 15%;
+    top: 3%;
+    background-repeat: no-repeat;
+    background-size: contain;
+    height: 110px;
+    width: 290px;
+}
+body.page-id-6778 .elementor-location-header, body.page-id-6778 .elementor-location-footer{
+    display: none;
+}/* End custom CSS */

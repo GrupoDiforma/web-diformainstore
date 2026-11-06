@@ -14,9 +14,9 @@ Contexto → carpeta `docs/`. Repo: https://github.com/GrupoDiforma/web-diformai
 | DF-2 | Inventario y backup cPanel | Hecho |
 | DF-6 | Decisión: app nueva en Cursor | Hecho |
 | DF-9 | Sembrar repo local + GitHub | Hecho |
-| DF-7 | Preview público (GitHub Pages) | En curso |
+| DF-7 | Preview público (GitHub Pages) | Hecho (espejo estático) |
 | DF-1 | Plan de migración | Por revisar |
-| DF-3 | App espejo con contenido del backup | En cola |
+| DF-3 | Espejo estático publicado en Pages | Hecho (v1 crawl) |
 | DF-4 | Validar SEO, leads y corte | En cola |
 | DF-5 | Otras 3 webs Marketeros | En cola |
 
