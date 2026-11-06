@@ -22,6 +22,7 @@ from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "docs" / "mapa-urls.csv"
+EXTRA_CSV = ROOT / "docs" / "mapa-urls-extra.csv"
 SITE = ROOT / "site"
 BACKUP_WEB = Path(
     r"C:\Users\Edwin_Laverde\Downloads\download_diformainstore"
@@ -54,15 +55,16 @@ ASSET_ATTRS = [
 ]
 
 
-def load_routes() -> list[str]:
-    rows = list(csv.DictReader(CSV_PATH.open(encoding="utf-8")))
+def load_routes(include_extra: bool = True) -> list[str]:
     routes = ["/"]
-    for r in rows:
-        if r["status"] != "publish" or r["type"] not in {"page", "post"}:
-            continue
-        u = (r["url"] or "").strip()
-        if u.startswith("/") and u not in routes:
-            routes.append(u)
+    for path in [CSV_PATH] + ([EXTRA_CSV] if include_extra and EXTRA_CSV.exists() else []):
+        rows = list(csv.DictReader(path.open(encoding="utf-8")))
+        for r in rows:
+            if r.get("status") and r["status"] != "publish":
+                continue
+            u = (r.get("url") or "").strip()
+            if u.startswith("/") and u not in routes:
+                routes.append(u)
     return routes
 
 
@@ -79,7 +81,19 @@ def local_path_for_url(url: str) -> Path | None:
         rel = Path("_ext") / p.netloc / unquote(p.path.lstrip("/"))
     else:
         rel = Path(unquote(p.path.lstrip("/")))
-    if not rel.parts or str(rel).endswith("/"):
+    # Resolve .. segments from WP plugin URLs like elementor/../vendor/...
+    rel = Path(*rel.parts) 
+    parts: list[str] = []
+    for part in rel.parts:
+        if part in ("", "."):
+            continue
+        if part == "..":
+            if parts:
+                parts.pop()
+            continue
+        parts.append(part)
+    rel = Path(*parts) if parts else Path()
+    if not rel.parts or str(urlparse(url).path).endswith("/"):
         rel = rel / "index.html"
     elif rel.suffix == "":
         # pretty permalink → folder/index.html
@@ -194,9 +208,24 @@ def rewrite_html(html: str, page_url: str) -> str:
         p = urlparse(abs_u)
         if is_our_host(abs_u):
             path = p.path or "/"
-            # Keep pretty paths; assets keep file path
-            return f"{BASE_PATH}{path}" + (f"?{p.query}" if p.query else "")
+            out = f"{BASE_PATH}{path}"
+            if p.query:
+                out += f"?{p.query}"
+            if p.fragment:
+                out += f"#{p.fragment}"
+            return out
         return abs_u
+
+    def fix_menu_hrefs(soup: BeautifulSoup) -> None:
+        for a in soup.find_all("a", href=True):
+            label = a.get_text(" ", strip=True)
+            href = a["href"]
+            if label == "Portfolio" and href in ("#", f"{BASE_PATH}/#", f"{BASE_PATH}/"):
+                a["href"] = f"{BASE_PATH}/portfolio/"
+            if label == "About Us" and href.rstrip("/") == BASE_PATH:
+                a["href"] = f"{BASE_PATH}/#about-us"
+            if label == "Our Clients" and href.rstrip("/") == BASE_PATH:
+                a["href"] = f"{BASE_PATH}/#our-clients"
 
     for tag, attr in ASSET_ATTRS:
         for el in soup.find_all(tag):
@@ -218,6 +247,7 @@ def rewrite_html(html: str, page_url: str) -> str:
 
     for a in soup.find_all("a", href=True):
         a["href"] = rewrite_one(a["href"])
+    fix_menu_hrefs(soup)
 
     # Replace leftover absolute origins in raw text (JSON-LD, etc.)
     out = str(soup)
@@ -281,23 +311,43 @@ def main() -> None:
     if not CSV_PATH.exists():
         print("Missing mapa-urls.csv", file=sys.stderr)
         sys.exit(1)
-    if SITE.exists():
+    incremental = "--incremental" in sys.argv
+    only_extra = "--only-extra" in sys.argv
+    if SITE.exists() and not incremental and not only_extra:
         print("Removing previous site/ …")
         shutil.rmtree(SITE)
-    SITE.mkdir(parents=True)
+    SITE.mkdir(parents=True, exist_ok=True)
     copy_core_static_from_backup()
-    routes = load_routes()
-    print(f"Routes to mirror: {len(routes)}")
-    ok = 0
+    if only_extra:
+        if not EXTRA_CSV.exists():
+            print("Missing mapa-urls-extra.csv", file=sys.stderr)
+            sys.exit(1)
+        routes = []
+        for r in csv.DictReader(EXTRA_CSV.open(encoding="utf-8")):
+            u = (r.get("url") or "").strip()
+            if u.startswith("/") and u not in routes:
+                routes.append(u)
+    else:
+        routes = load_routes(include_extra=True)
+    # Skip routes already mirrored when incremental/only-extra
+    pending = []
     for route in routes:
+        dest = local_path_for_url(urljoin(LIVE, route))
+        if (incremental or only_extra) and dest and dest.exists() and dest.stat().st_size > 0:
+            continue
+        pending.append(route)
+    print(f"Routes to mirror: {len(pending)} (of {len(routes)})")
+    ok = 0
+    for route in pending:
         if fetch_page(route):
             ok += 1
-        time.sleep(0.25)
+        time.sleep(0.2)
     files = [p for p in SITE.rglob("*") if p.is_file()]
     size = sum(p.stat().st_size for p in files)
-    print(f"Mirrored {ok}/{len(routes)} pages · {len(files)} files · {size/1e6:.1f} MB")
+    print(f"Mirrored {ok}/{len(pending)} pages · {len(files)} files · {size/1e6:.1f} MB")
     print(f"Output: {SITE}")
 
 
 if __name__ == "__main__":
     main()
+
